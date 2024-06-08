@@ -1,5 +1,5 @@
 import pandas
-# ultralytics import YOLO
+from ultralytics import YOLO
 import cv2
 import streamlit as st
 #import tensorflow as tf
@@ -11,7 +11,7 @@ import PIL
 import os
 from collections import deque
 import numpy as np
-#model_gun = YOLO('weights.pt')
+model_gun = YOLO('yolov9e.pt')
 
 
 
@@ -44,9 +44,9 @@ if selected == "Мониторинг":
     stream_on_off = st.checkbox('Включить / выключить демонстрацию с камер')
     if stream_on_off:
         cap_1 = cv2.VideoCapture(
-            'rtsp://admin:A1234567@188.170.176.190:8028/Streaming/Channels/101?transportmode=unicast&profile=Profile_1')
+            'rtsp://admin:A1234567@188.170.176.190:8028')
         cap_2 = cv2.VideoCapture(
-            'rtsp://admin:A1234567@188.170.176.190:8029/Streaming/Channels/101?transportmode=unicast&profile=Profile_1')
+            'rtsp://admin:A1234567@188.170.176.190:8029')
 
 
 
@@ -168,40 +168,71 @@ if selected == "File mode":
     if source_radio == "Image":
 
         source_img = st.sidebar.file_uploader(
-            "Choose an image...", type=("jpg", "jpeg", "png", 'bmp', 'webp'))
+            "Choose an image...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
 
-        col1, col2 = st.columns(2)
+        # if source_img:
+        #     mode = st.sidebar.
+        # col1, col2 = st.columns(2)
 
         with col1:
-            if source_img:
-                uploaded_image = PIL.Image.open(source_img)
-                st.image(source_img, caption="Uploaded Image", use_column_width=True)
+                if isinstance(source_img,list):
+                    lst_of_imgs = []
+                    for image in source_img:
+                        uploaded_image = PIL.Image.open(image)
+                        lst_of_imgs.append(uploaded_image)
+                        st.image(image, caption="Uploaded Image", use_column_width=True)
+                else:
+                    uploaded_image = PIL.Image.open(image)
+                    lst_of_imgs.append(uploaded_image)
+                    st.image(image, caption="Uploaded Image", use_column_width=True)
+
+
 
         with col2:
 
             if st.sidebar.button('Detect Objects'):
-                try:
-                    res = model_gun.predict(uploaded_image,
-                                        conf=confidence
-                                        )
+                if isinstance(source_img,list):
+                    try:
+                        for image in lst_of_imgs:
+                            res = model_gun.predict(image,
+                                                conf=confidence
+                                                )
 
-                    boxes = res[0].boxes
-                    res_plotted = res[0].plot()[:, :, ::-1]
-                    st.image(res_plotted, caption='Detected Image',
-                             use_column_width=True)
+                            boxes = res[0].boxes
+                            res_plotted = res[0].plot()[:, :, ::-1]
+                            st.image(res_plotted, caption='Detected Image',    # здесь код пока что чуть-чуть дурацкий, тут может быть ситуация
+                                     use_column_width=True)                    # когда загружают одно или несколько фото
 
-                    with st.expander("Detection Results"):
-                        for box in boxes:
-                            st.write(box.data)
-                except Exception as ex:
-                    # st.write(ex)
-                    st.error("No image is uploaded yet!")
+                            with st.expander("Detection Results"):
+                                for box in boxes:
+                                    st.write(box.data)
+                        del lst_of_imgs
+                    except Exception as ex:
+                        # st.write(ex)
+                        st.error("No image is uploaded yet!")
+                else:
+                    try:
+                        res = model_gun.predict(uploaded_image,
+                                                conf=confidence
+                                                )
+
+                        boxes = res[0].boxes
+                        res_plotted = res[0].plot()[:, :, ::-1]
+                        st.image(res_plotted, caption='Detected Image',
+                                 use_column_width=True)
+
+                        with st.expander("Detection Results"):
+                            for box in boxes:
+                                st.write(box.data)
+                    except Exception as ex:
+                        # st.write(ex)
+                        st.error("No image is uploaded yet!")
 
 
     elif source_radio == 'Video':
 
 
-        video_input(model_gun,model_pose,confidence)
+        video_input(model_gun,confidence)
         #create_download_video('uploaded_data/filename.mp4')
         #create_download_zip('archiv','uploaded_data/archiv')
 
