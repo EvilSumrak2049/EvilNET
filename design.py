@@ -18,7 +18,7 @@ import numpy as np
 
 conn, cur = create_db_state()
 
-model_gun = YOLO('best_all_v9_40epoch.pt')
+model_gun = YOLO('models/YOLOv9c.pt')
 
 
 import sqlite3
@@ -89,10 +89,11 @@ if selected == "Мониторинг":
 
 #################################
 
-    with st.container():
-        col1, col2, col3 = st.columns(3)
-    with col1:
+    # with st.container():
+    #     col1, col2, col3 = st.columns(3)
+    # with col1:
 
+<<<<<<< HEAD
         ##output=st.empty()
         image_vid_1 = Image.open('img/pribor96_hubsan_zino_pro_2.jpg')
         st.image(image_vid_1)
@@ -104,6 +105,19 @@ if selected == "Мониторинг":
         ##output = st.empty()
         image_vid_3 = Image.open('img/plain.jpg')
         st.image(image_vid_3)
+=======
+    #     ##output=st.empty()
+    #     image_vid_1 = Image.open('from git/pic_vid.png')
+    #     st.image(image_vid_1, caption='Указать объект - время - дату')
+    # with col2:
+    #     ##output = st.empty()
+    #     image_vid_2 = Image.open('from git/pic_vid.png')
+    #     st.image(image_vid_2, caption='Указать объект - время - дату')
+    # with col3:
+    #     ##output = st.empty()
+    #     image_vid_3 = Image.open('from git/pic_vid.png')
+    #     st.image(image_vid_3, caption='Указать объект - время - дату')
+>>>>>>> master
 
     st.divider()
 

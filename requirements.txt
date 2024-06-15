@@ -1,0 +1,5 @@
+streamlit==1.35.0
+opencv-python==4.10.0.82
+ultralytics==8.2.28
+streamlit-option-menu==0.3.13
+dill==0.3.8
