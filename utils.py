@@ -59,7 +59,7 @@ def create_download_zip(name_out,zip_path,filename='myzip.zip'):
         btn = st.download_button(
             label="Download ZIP",
             data=fp,
-            on_click=click(),
+ #           on_click=upsert_zip('1',conn,cur),
             file_name=filename,
             mime="application/zip",
             key='button_zip'
@@ -157,10 +157,10 @@ def video_input(model_gun,confidence,conn,cur):
                 break
             if not custom_size:
                 frame = cv2.resize(frame, (640, 640))
-                result_gun = model_gun.predict(frame, verbose=False, conf=confidence, imgsz=416,device = 0)
+                result_gun = model_gun.predict(frame, verbose=False, conf=confidence, imgsz=418,device = 0)
             else:
                 frame = cv2.resize(frame, (width, height))
-                result_gun = model_gun.predict(frame, verbose=False, conf=confidence, imgsz=predict)
+                result_gun = model_gun.predict(frame, verbose=False, conf=confidence, imgsz=predict,device = 0)
             #result_gun = model_gun.predict(frame, verbose=True, conf=confidence, imgsz=416)
             k+=1
             fps = cap.get(cv2.CAP_PROP_FPS)

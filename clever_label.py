@@ -37,28 +37,28 @@ def auto_label(model,path_from,conf,dir_name):
 
         #text_file.close()
         #text_file_conf.close()
-
+  print(name_file)
   if len(st)!=0:
       st=st[:-1]
-      text_file = open(name_file, "w")
+      text_file = open(os.path.join(dir_name+"_labels",name_file.split("\\")[-1]), "w")
       #text_file_conf = open(name_file_conf, "w")
       text_file.write(st)
       #text_file_conf.write(st_conf)
       text_file.close()
       #text_file_conf.close()
       #shutil.move(path_from,path_to)
-      shutil.move(name_file,f"{dir_name}_labels")
+     # shutil.move(name_file,f"{dir_name}_labels")
     #  cv2.imwrite(f'{os.path.join(path_to,path_from.split("/")[-1])}',res_plotted)
       #shutil.move(name_file_conf,path_to)
   else:
-      text_file = open(name_file, "w")
+      text_file = open(os.path.join(dir_name+"_labels",name_file.split("\\")[-1]), "w")
       # text_file_conf = open(name_file_conf, "w")
       text_file.write(st)
       # text_file_conf.write(st_conf)
       text_file.close()
       # text_file_conf.close()
       #shutil.move(path_from, path_to)
-      shutil.move(name_file, f"{dir_name}_labels")
+     # shutil.move(name_file, f"{dir_name}_labels")
       # shutil.move(name_file_conf,path_to)
 
 
