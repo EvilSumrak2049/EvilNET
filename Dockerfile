@@ -11,7 +11,16 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt install libgl1-mesa-glx -y
+
+# Update and fix broken packages
+RUN apt-get update && apt-get install -y --fix-broken
+
+# Install your packages, specifying versions if necessary
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libopencv-dev
+
 RUN apt-get install 'ffmpeg'\
     'libsm6'\
     'libxext6'  -y
