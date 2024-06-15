@@ -3,16 +3,27 @@ from ultralytics import YOLO
 import cv2
 import streamlit as st
 #import tensorflow as tf
-from utils import video_input,create_download_video
+from utils import video_input,create_download_video,create_download_zip
 from PIL import Image
+import tkinter as tk
+from tkinter import filedialog
 from streamlit_option_menu import option_menu
 import pandas as pd
 import PIL
 import os
 from collections import deque
+from clever_label import auto_label
+from utils import create_db_state,upsert_video_state,get_video_state_by_name
 import numpy as np
-model_gun = YOLO('yolov9e.pt')
 
+conn, cur = create_db_state()
+
+model_gun = YOLO('best_all_v9_40epoch.pt')
+
+
+import sqlite3
+
+# Подключаемся к базе данных (если базы нет, то она будет создана)
 
 
 
@@ -27,7 +38,7 @@ st.set_page_config(page_title="EvilNet search for drons", page_icon=":cinema:", 
 st.sidebar.image("img/EvilNET_logo.jpg", caption="Search for drons")
 
 with st.sidebar:
-    selected = option_menu("", ["Мониторинг", "---", "Devises", "Settings", "File mode"],
+    selected = option_menu("", ["Мониторинг", "---", "Devises", "Settings", "File mode","Download Video"],
                            icons=['images', '', 'camera-video', 'gear', 'card-image'], menu_icon="cast",
                            default_index=0,
                            styles={
@@ -167,9 +178,29 @@ if selected == "File mode":
     # If image is selected
     if source_radio == "Image":
 
+        clicked = st.sidebar.button('Browse Folder')
         source_img = st.sidebar.file_uploader(
-            "Choose an image...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
-
+            "Choose an images...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
+        if clicked:
+            root = tk.Tk()
+            root.withdraw()
+            root.wm_attributes('-topmost', 1)
+            dirname = str(filedialog.askdirectory(master=root))
+            print(dirname)
+            listdirs = os.listdir(dirname)
+            for path in listdirs:
+                filename = os.path.join(dirname,path)
+                picture = PIL.Image.open(filename)                            #ЗАВТРА ПОЛЮБОМУ НАДО ДОРАБОТАТЬ
+                auto_label(model_gun,filename,confidence,dirname)
+            if '/' in dirname:
+                final_path = dirname.split('/')[-1]
+            elif '\\' in dirname:
+                final_path = dirname.split('\\')[-1]
+            zip_button = create_download_zip(f"{final_path}_labels",f"{dirname}_labels",f"{final_path}_labels.zip")
+            print(zip_button)
+            if zip_button:
+                os.remove(f"{dirname}_labels")
+                os.remove(f"{final_path}_labels.zip")
         # if source_img:
         #     mode = st.sidebar.
         # col1, col2 = st.columns(2)
@@ -232,8 +263,21 @@ if selected == "File mode":
     elif source_radio == 'Video':
 
 
-        video_input(model_gun,confidence)
+        video_input(model_gun,confidence,conn,cur)
+        conn.close()
         #create_download_video('uploaded_data/filename.mp4')
         #create_download_zip('archiv','uploaded_data/archiv')
 
 
+if selected == "Download Video":
+    try:
+        lst_videos = list(map(lambda x:x[1],get_video_state_by_name(cur)))
+        print(lst_videos)
+        option = st.selectbox(
+            "How would you like to be contacted?",
+            lst_videos)
+
+        st.write("You selected:", option)
+        button_video = create_download_video(f'videos/{option}',option)
+    except:
+        st.error("You didn't detect anything")

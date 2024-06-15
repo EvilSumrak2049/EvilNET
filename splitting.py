@@ -29,7 +29,7 @@ def get_saving_frames_durations(cap, saving_fps):
 
 def split(video_file):
     #filename, _ = os.path.splitext(video_file)
-    filename = "frames/images"
+    filename = "frames/images_fly"
     # создаем папку по названию видео файла
     if not os.path.isdir(filename):
         os.mkdir(filename)
@@ -71,4 +71,4 @@ def split(video_file):
 
 
 
-split('f.mp4')
+split('m_fly.mp4')

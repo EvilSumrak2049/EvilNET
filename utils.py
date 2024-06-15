@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 import pandas
 import cv2
@@ -6,28 +7,55 @@ import streamlit as st
 #import tensorflow as tf
 import shutil
 from collections import deque
+import sqlite3
+
+
+def create_db_state():
+    conn = sqlite3.connect('videos.db')
+    cur = conn.cursor()
+
+    # Создаем таблицу video_state
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS video (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE
+    )
+    ''')
+    return conn,cur
+
+def upsert_video_state(name,conn,cur):
+    cur.execute('''
+    INSERT INTO video (name)
+    VALUES (?)
+    ON CONFLICT(name) DO UPDATE SET
+    name = excluded.name
+    ''', (name,))
+    conn.commit()
+
+
+def get_video_state_by_name(cur):
+    cur.execute('SELECT * FROM video')
+    return cur.fetchall()
 
 
 
-
-
-
-def create_download_video(path):
+def create_download_video(path,filename = 'detected.mp4'):
     with open(path, 'rb') as video:
         btn = st.download_button(
-            label="Download video",
+            label="Download this video",
             data=video,
-            file_name="detected.mp4",
+            file_name=filename,
             mime='video/mp4'
         )
+    return btn
 
 def click():
     print('click')
 
 
-def create_download_zip(zip_directory,zip_path,filename='myzip.zip'):
-    shutil.make_archive(zip_path, 'zip', zip_directory)
-    with open("uploaded_data/archiv.zip", "rb") as fp:
+def create_download_zip(name_out,zip_path,filename='myzip.zip'):
+    shutil.make_archive(name_out, 'zip', zip_path)
+    with open(f"{name_out}.zip", "rb") as fp:
         btn = st.download_button(
             label="Download ZIP",
             data=fp,
@@ -36,6 +64,7 @@ def create_download_zip(zip_directory,zip_path,filename='myzip.zip'):
             mime="application/zip",
             key='button_zip'
         )
+    return btn
 
 
 
@@ -57,20 +86,27 @@ def crop(image,name=None):
 
 
 volume = 0
-
-def video_input(model_gun,confidence):
+dct={'video':True}
+def video_input(model_gun,confidence,conn,cur):
 
     vid_file = None
+    button_video = False
+
     k = 0
     vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
     if vid_bytes:
-        vid_file = "uploaded_data/upload." + vid_bytes.name.split('.')[-1]
+        #print(vid_bytes.name)
+        #vid_file = "uploaded_data/upload." + vid_bytes.name.split('.')[-1]
+        vid_file = "videos/" + vid_bytes.name
+        print(vid_file)
         with open(vid_file, 'wb') as out:
             out.write(vid_bytes.read())
     if vid_file:
-        result = cv2.VideoWriter('uploaded_data/filename.avi',
+        vid_file_detected = vid_file[:-4]+'_detected.avi'
+        print(f'{vid_file[:-4]}_detected.avi')
+        result = cv2.VideoWriter(vid_file_detected,
                                  cv2.VideoWriter_fourcc(*'MJPG'),
-                                 30, (416, 416))
+                                 30, (640, 640))
 
         cap = cv2.VideoCapture(vid_file)
         len_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -113,14 +149,18 @@ def video_input(model_gun,confidence):
             if not ret:
                 result.release()
                 st.write("Can't read frame, stream ended? Exiting ....")
-                create_download_video('uploaded_data/filename.avi')
+                upsert_video_state(vid_file_detected.split('/')[-1],conn,cur)
+                # button_video = create_download_video(f'uploaded_data/filename.avi')
+                # if button_video:
+                #     os.remove(f'{vid_file[:-4]}_detected.avi')
+                #     os.remove(vid_file)
                 break
             if not custom_size:
-                frame = cv2.resize(frame, (416, 416))
-                result_gun = model_gun.predict(frame, verbose=True, conf=confidence, imgsz=416,device = 0)
+                frame = cv2.resize(frame, (640, 640))
+                result_gun = model_gun.predict(frame, verbose=False, conf=confidence, imgsz=416,device = 0)
             else:
                 frame = cv2.resize(frame, (width, height))
-                result_gun = model_gun.predict(frame, verbose=True, conf=confidence, imgsz=predict)
+                result_gun = model_gun.predict(frame, verbose=False, conf=confidence, imgsz=predict)
             #result_gun = model_gun.predict(frame, verbose=True, conf=confidence, imgsz=416)
             k+=1
             fps = cap.get(cv2.CAP_PROP_FPS)
@@ -170,7 +210,7 @@ def video_input(model_gun,confidence):
                         # st.image(frame)  # Выводим картинку
 
                             #st.download_button('coordinates_' + str(count), line, file_name='coordinates_' + str(count)+'.txt')
-                        
+
 
                         count += 1  # увеличиваем счетчик
 
