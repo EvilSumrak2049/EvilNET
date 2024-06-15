@@ -11,10 +11,14 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt install libgl1-mesa-glx -y
+RUN apt-get install 'ffmpeg'\
+    'libsm6'\
+    'libxext6'  -y
+
 RUN git clone https://github.com/EvilSumrak2049/EvilNET.git .
 
 RUN pip3 install -r requirements.txt
-RUN apt-get install ffmpeg libsm6 libxext6  -y
 
 EXPOSE 8501
 
