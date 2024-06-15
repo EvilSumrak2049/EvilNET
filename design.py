@@ -38,8 +38,8 @@ st.set_page_config(page_title="EvilNet search for drons", page_icon=":cinema:", 
 st.sidebar.image("img/EvilNET_logo.jpg", caption="Search for drons")
 
 with st.sidebar:
-    selected = option_menu("", ["Мониторинг", "---", "Devises", "Settings", "File mode","Download Video"],
-                           icons=['images', '', 'camera-video', 'gear', 'card-image'], menu_icon="cast",
+    selected = option_menu("", ["Мониторинг", "---", "File mode","Download Video","Devises"],
+                           icons=['images', '','gear' , 'camera-video', 'card-image'], menu_icon="cast",
                            default_index=0,
                            styles={
                                "container": {"padding": "0!important", "background-color": "#fafafa"},
@@ -93,17 +93,17 @@ if selected == "Мониторинг":
     #     col1, col2, col3 = st.columns(3)
     # with col1:
 
-    #     ##output=st.empty()
-    #     image_vid_1 = Image.open('from git/pic_vid.png')
-    #     st.image(image_vid_1, caption='Указать объект - время - дату')
-    # with col2:
-    #     ##output = st.empty()
-    #     image_vid_2 = Image.open('from git/pic_vid.png')
-    #     st.image(image_vid_2, caption='Указать объект - время - дату')
-    # with col3:
-    #     ##output = st.empty()
-    #     image_vid_3 = Image.open('from git/pic_vid.png')
-    #     st.image(image_vid_3, caption='Указать объект - время - дату')
+        ##output=st.empty()
+        image_vid_1 = Image.open('img/pribor96_hubsan_zino_pro_2.jpg')
+        st.image(image_vid_1)
+    with col2:
+        ##output = st.empty()
+        image_vid_2 = Image.open('img/helicopter.jpg')
+        st.image(image_vid_2)
+    with col3:
+        ##output = st.empty()
+        image_vid_3 = Image.open('img/plain.jpg')
+        st.image(image_vid_3)
 
     st.divider()
 
@@ -147,7 +147,8 @@ if selected == "Devises":
 
 
 
-
+def del_fol():
+    pass
 
 
 
@@ -157,11 +158,7 @@ if selected == "Devises":
 #	result = name.title()
 # st.success(result)
 
-# Settings
-if selected == "Settings":
-    # Header
-    st.title('Welcome to Settings')
-    #st.subheader('*A new tool to find similar locations across the United States.*')
+
 
 # File mode
 if selected == "File mode":
@@ -177,30 +174,46 @@ if selected == "File mode":
     source_img = None
     # If image is selected
     if source_radio == "Image":
-
         clicked = st.sidebar.button('Browse Folder')
         source_img = st.sidebar.file_uploader(
             "Choose an images...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
         if clicked:
+            #upsert_zip(0,conn,cur)
             root = tk.Tk()
             root.withdraw()
             root.wm_attributes('-topmost', 1)
             dirname = str(filedialog.askdirectory(master=root))
-            print(dirname)
-            listdirs = os.listdir(dirname)
-            for path in listdirs:
-                filename = os.path.join(dirname,path)
-                picture = PIL.Image.open(filename)                            #ЗАВТРА ПОЛЮБОМУ НАДО ДОРАБОТАТЬ
-                auto_label(model_gun,filename,confidence,dirname)
-            if '/' in dirname:
-                final_path = dirname.split('/')[-1]
-            elif '\\' in dirname:
-                final_path = dirname.split('\\')[-1]
-            zip_button = create_download_zip(f"{final_path}_labels",f"{dirname}_labels",f"{final_path}_labels.zip")
-            print(zip_button)
-            if zip_button:
-                os.remove(f"{dirname}_labels")
-                os.remove(f"{final_path}_labels.zip")
+            if dirname!='':
+                print(dirname)
+                if '/' in dirname:
+                    dirname = dirname.split('/')[-1]
+                    listdirs = os.listdir(dirname)
+                elif '\\' in dirname:
+                    dirname = dirname.split('\\')[-1]
+                    listdirs = os.listdir(dirname)
+
+
+                for path in listdirs:
+                    filename = os.path.join(dirname,path)
+                    picture = PIL.Image.open(filename)                            #ЗАВТРА ПОЛЮБОМУ НАДО ДОРАБОТАТЬ
+                    auto_label(model_gun,filename,confidence,dirname)
+                if '/' in dirname:
+                    final_path = dirname.split('/')[-1]
+                else:
+                    final_path = dirname.split('\\')[-1]
+                zip_button = create_download_zip(f"{final_path}_labels",f"{dirname}_labels",f"{final_path}_labels.zip")
+     #   print(get_mode_zip(cur))
+       # if len(get_mode_zip(cur))!=0 and get_mode_zip(cur)[0][1]:
+                if zip_button:
+                    print('i here')
+                    if os.path.isdir(f"{final_path}_labels"):
+                        print(True)
+                        os.remove(f"{final_path}_labels")
+
+                    if os.path.isfile(f"{final_path}_labels.zip"):
+                        print(True)
+                        os.remove(f"{final_path}_labels.zip")
+          #  upsert_zip(0,conn,cur)
         # if source_img:
         #     mode = st.sidebar.
         # col1, col2 = st.columns(2)
@@ -276,8 +289,13 @@ if selected == "Download Video":
         option = st.selectbox(
             "How would you like to be contacted?",
             lst_videos)
-
+        print(option)
         st.write("You selected:", option)
         button_video = create_download_video(f'videos/{option}',option)
+        if button_video:
+            print(f"videos/{option.replace('_detected.avi', '.mp4')}")
+            if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
+               # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+                os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
     except:
         st.error("You didn't detect anything")
