@@ -172,6 +172,9 @@ if selected == "File mode":
     source_img = None
     # If image is selected
     if source_radio == "Image":
+        custom_size = st.sidebar.checkbox("Custom frame size")
+        if custom_size:
+            predict = st.sidebar.number_input("Predict", min_value=120, step=20, value=420)
         clicked = st.sidebar.button('Browse Folder')
         source_img = st.sidebar.file_uploader(
             "Choose an images...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
@@ -194,7 +197,10 @@ if selected == "File mode":
                 for path in listdirs:
                     filename = os.path.join(dirname,path)
                     picture = PIL.Image.open(filename)                            #ЗАВТРА ПОЛЮБОМУ НАДО ДОРАБОТАТЬ
-                    auto_label(model,filename,confidence,dirname)
+                    if custom_size:
+                        auto_label(model,filename,confidence,dirname,predict)
+                    else:
+                        auto_label(model, filename, confidence, dirname)
                 if '/' in dirname:
                     final_path = dirname.split('/')[-1]
                 else:
@@ -236,9 +242,16 @@ if selected == "File mode":
                 if isinstance(source_img,list):
                     try:
                         for image in lst_of_imgs:
-                            res = model.predict(image,
-                                                conf=confidence
-                                                )
+                            if not custom_size:
+                                res = model.predict(image,
+                                                    conf=confidence
+                                                    )
+                            else:
+                                res = model.predict(image,
+                                                    conf=confidence,
+                                                    imgsz = predict
+                                                    )
+
 
                             boxes = res[0].boxes
                             res_plotted = res[0].plot()[:, :, ::-1]
@@ -247,7 +260,7 @@ if selected == "File mode":
 
                             with st.expander("Detection Results"):
                                 for box in boxes:
-                                    st.write(box.data)
+                                    st.write(box.xywhn)
                         del lst_of_imgs
                     except Exception as ex:
                         # st.write(ex)

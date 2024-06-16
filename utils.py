@@ -96,7 +96,9 @@ dct={'video':True}
 def video_input(model,confidence,conn,cur):
     vid_file = None
     button_video = False
-
+    custom_size = st.sidebar.checkbox("Custom frame size")
+    if custom_size:
+        predict = st.sidebar.number_input("Predict", min_value=120, step=20, value=480)
     k = 0
     vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
     if vid_bytes:
@@ -120,13 +122,10 @@ def video_input(model,confidence,conn,cur):
         #print(len_of_frames)
         progress = st.progress(0,text = "Operation in progress. Please wait.")
         status_text=st.empty()
-        custom_size = st.sidebar.checkbox("Custom frame size")
+
         # width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        if custom_size:
-            width = st.sidebar.number_input("Width", min_value=120, step=20, value=420)
-            height = st.sidebar.number_input("Height", min_value=120, step=20, value=420)
-            predict = st.sidebar.number_input("Predict", min_value=120, step=20, value=420)
+
 
 
 
@@ -172,7 +171,6 @@ def video_input(model,confidence,conn,cur):
                 frame = cv2.resize(frame, (640, 640))
                 result_drone = model.predict(frame, verbose=False, conf=confidence, imgsz=640,device = 0)
             else:
-                frame = cv2.resize(frame, (width, height))
                 result_drone = model.predict(frame, verbose=False, conf=confidence, imgsz=predict,device = 0)
             #result_gun = model_gun.predict(frame, verbose=True, conf=confidence, imgsz=416)
             k+=1

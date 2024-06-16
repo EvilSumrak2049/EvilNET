@@ -5,10 +5,13 @@ import cv2
 from ultralytics import YOLO
 
 model = YOLO('yolov9c.pt')
-def auto_label(model,path_from,conf,dir_name):
+def auto_label(model,path_from,conf,dir_name,predict = None):
   if not os.path.isdir(f'{dir_name}_labels'):
       os.mkdir(f"{dir_name}_labels")
-  res = model(path_from,conf = conf/100)
+  if not predict:
+    res = model(path_from,conf = conf/100)
+  else:
+      res = model(path_from,conf = conf/100,imgsz = predict)
   st=''
   #st_conf=''
   boxes=res[0].boxes
