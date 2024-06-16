@@ -106,7 +106,7 @@ def video_input(model,confidence,conn,cur):
         #vid_file = "uploaded_data/upload." + vid_bytes.name.split('.')[-1]
         if not os.path.isdir('videos'):
             os.mkdir('videos')
-        vid_file = "videos/" + vid_bytes.name
+        vid_file = os.path.join('videos',vid_bytes.name)
         #print(vid_file)
         with open(vid_file, 'wb') as out:
             out.write(vid_bytes.read())
