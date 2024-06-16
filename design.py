@@ -2,7 +2,6 @@ import pandas
 from ultralytics import YOLO
 import cv2
 import streamlit as st
-#import tensorflow as tf
 from utils import video_input,create_download_video,create_download_zip
 from PIL import Image
 import tkinter as tk
@@ -12,17 +11,16 @@ import pandas as pd
 import PIL
 import os
 from clever_label import auto_label
-from utils import create_db_state,upsert_video_state,get_video_state_by_name,delete_video_state_by_name
-import numpy as np
+from utils import create_db_state,get_video_state_by_name,delete_video_state_by_name
+
 
 conn, cur = create_db_state()
 
 model = YOLO('best_all_v9_40epoch.pt')
 
 
-import sqlite3
 
-# Подключаемся к базе данных (если базы нет, то она будет создана)
+
 
 
 
@@ -92,15 +90,15 @@ if selected == "Мониторинг":
         col1, col2, col3 = st.columns(3)
     with col1:
 
-        ##output=st.empty()
+
         image_vid_1 = Image.open('img/pribor96_hubsan_zino_pro_2.jpg')
         st.image(image_vid_1)
     with col2:
-        ##output = st.empty()
+
         image_vid_2 = Image.open('img/helicopter.jpg')
         st.image(image_vid_2)
     with col3:
-        ##output = st.empty()
+
         image_vid_3 = Image.open('img/plain.jpg')
         st.image(image_vid_3)
 
@@ -138,7 +136,7 @@ if selected == "Devises":
     if del_camera:
 
         if name_ip and name_camera:
-            #df=df[np.logical_and.reduce((df['Название'] != name_camera, df['IP адрес'] != str(name_ip)))]
+
             df=df[(df['Название'] != name_camera) & (df['IP адрес'] != name_ip)]
             df.to_csv('list_of_camera.csv')
         else:
@@ -152,18 +150,14 @@ if selected == "Devises":
 
     st.table(df)
 
-    # if(st.button('Submit')):
-#	result = name.title()
-# st.success(result)
-
 
 
 # File mode
 if selected == "File mode":
-    # Header
+
     confidence = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 100
     st.subheader('File mode. Сценарий с видео/фото (базовый) Возможность загрузить папку фото/интерактивный режим или видеозаписи для тестирования')
-   # st.subheader("Image/Video Config")
+
 
     source_radio = st.sidebar.radio("Select Source", ['Image', 'Video'])  # , horizontal=True)
     with st.container():
@@ -179,13 +173,13 @@ if selected == "File mode":
         source_img = st.sidebar.file_uploader(
             "Choose an images...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
         if clicked:
-            #upsert_zip(0,conn,cur)
+
             root = tk.Tk()
             root.withdraw()
             root.wm_attributes('-topmost', 1)
             dirname = str(filedialog.askdirectory(master=root))
             if dirname!='':
-                #print(dirname)
+
                 if '/' in dirname:
                     dirname = dirname.split('/')[-1]
                     listdirs = os.listdir(dirname)
@@ -196,7 +190,7 @@ if selected == "File mode":
 
                 for path in listdirs:
                     filename = os.path.join(dirname,path)
-                    picture = PIL.Image.open(filename)                            #ЗАВТРА ПОЛЮБОМУ НАДО ДОРАБОТАТЬ
+                    picture = PIL.Image.open(filename)
                     if custom_size:
                         auto_label(model,filename,confidence,dirname,predict)
                     else:
@@ -206,21 +200,15 @@ if selected == "File mode":
                 else:
                     final_path = dirname.split('\\')[-1]
                 zip_button = create_download_zip(f"{final_path}_labels",f"{dirname}_labels",f"{final_path}_labels.zip")
-     #   print(get_mode_zip(cur))
-       # if len(get_mode_zip(cur))!=0 and get_mode_zip(cur)[0][1]:
                 if zip_button:
-                    #print('i here')
+
                     if os.path.isdir(f"{final_path}_labels"):
-                        print(True)
+
                         os.remove(f"{final_path}_labels")
 
                     if os.path.isfile(f"{final_path}_labels.zip"):
-                        print(True)
+
                         os.remove(f"{final_path}_labels.zip")
-          #  upsert_zip(0,conn,cur)
-        # if source_img:
-        #     mode = st.sidebar.
-        # col1, col2 = st.columns(2)
 
         with col1:
                 if isinstance(source_img,list):
@@ -255,15 +243,15 @@ if selected == "File mode":
 
                             boxes = res[0].boxes
                             res_plotted = res[0].plot()[:, :, ::-1]
-                            st.image(res_plotted, caption='Detected Image',    # здесь код пока что чуть-чуть дурацкий, тут может быть ситуация
-                                     use_column_width=True)                    # когда загружают одно или несколько фото
+                            st.image(res_plotted, caption='Detected Image',
+                                     use_column_width=True)
 
                             with st.expander("Detection Results"):
                                 for box in boxes:
                                     st.write(box.xywhn)
                         del lst_of_imgs
                     except Exception as ex:
-                        # st.write(ex)
+
                         st.error("No image is uploaded yet!")
                 else:
                     try:
@@ -280,7 +268,7 @@ if selected == "File mode":
                             for box in boxes:
                                 st.write(box.data)
                     except Exception as ex:
-                        # st.write(ex)
+
                         st.error("No image is uploaded yet!")
 
 
@@ -289,35 +277,34 @@ if selected == "File mode":
 
         video_input(model,confidence,conn,cur)
         conn.close()
-        #create_download_video('uploaded_data/filename.mp4')
-        #create_download_zip('archiv','uploaded_data/archiv')
+
 
 
 if selected == "Download Video":
     try:
         lst_videos = list(map(lambda x:x[1],get_video_state_by_name(cur)))
-        #print(lst_videos)
+
         option = st.selectbox(
             "How would you like to be contacted?",
             lst_videos)
-        #print(option)
+
         st.write("You selected:", option)
         button_video = create_download_video(f'videos/{option}',option)
         del_video_button = st.button('Delete this video')
         if button_video:
-            #print(f"videos/{option.replace('_detected.avi', '.mp4')}")
+
             if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
-               # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+
                 os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
         if del_video_button:
             if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
-               # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+
                 os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
             if os.path.isfile(f"{os.path.join('videos', option)}"):
-                # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+
                 os.remove(f"{os.path.join('videos', option)}")
             delete_video_state_by_name(option,conn,cur)
-
+            conn.close()
 
 
 
@@ -328,8 +315,9 @@ if selected == "Download Video":
         if del_video_button:
             if option is not None:
                 if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
-                   # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+
                     os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
                     delete_video_state_by_name(option, conn, cur)
+                    conn.close()
             else:
                 st.write("You didn't have anything")
