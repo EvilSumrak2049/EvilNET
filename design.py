@@ -19,16 +19,7 @@ conn, cur = create_db_state()
 model = YOLO('best_all_v9_40epoch.pt')
 
 
-
-
-
-
-
-
-
-
-
-st.set_page_config(page_title="EvilNet search for drones", page_icon=":cinema:", layout="wide",
+st.set_page_config(page_title="EvilNet search for drones", page_icon=":small_airplane:", layout="wide",
                    initial_sidebar_state="expanded")
 
 # side bar
@@ -41,22 +32,15 @@ with st.sidebar:
                            )
 
 
-
-
-# Main Page Мониторинг
-st.subheader("Раздел события")
+# Main Page Monitoring
+st.header("Flying objects detection")
 if selected == "Monitoring":
-    stream_on_off = st.checkbox('Включить / выключить демонстрацию с камер')
+    stream_on_off = st.checkbox('On/off camera streaming')
     if stream_on_off:
         cap_1 = cv2.VideoCapture(
             'rtsp://admin:A1234567@188.170.176.190:8028')
         cap_2 = cv2.VideoCapture(
             'rtsp://admin:A1234567@188.170.176.190:8029')
-
-
-
-
-
 
         with st.container():
             col1, col2 = st.columns(2)
@@ -64,7 +48,6 @@ if selected == "Monitoring":
             output_1 = st.empty()
         with col2:
             output_2 = st.empty()
-
 
         while True:
             ret, frame = cap_1.read()
@@ -77,8 +60,6 @@ if selected == "Monitoring":
         st.divider()
 
     ####################################
-
-
 
 
 #################################
@@ -106,15 +87,15 @@ if selected == "Devices":
     with st.container():
         col1, col2, col3 = st.columns(3)
     with col1:
-        name_camera = st.text_input("Название камеры",)
+        name_camera = st.text_input("Camera name",)
     with col2:
-        name_ip = st.text_input("IP адрес",)
+        name_ip = st.text_input("IP address",)
     with col3:
-        add_camera = st.button('Добавить камеру')
-        del_camera = st.button('Удалить камеру')
+        add_camera = st.button('Add camera', type='primary')
+        del_camera = st.button('Remove camera')
 
 
-    st.subheader(":movie_camera: Камеры")
+    st.subheader(":movie_camera: Cameras")
     try:
         df = pd.read_csv('list_of_camera.csv',index_col=0)
     except:
@@ -129,7 +110,7 @@ if selected == "Devices":
             df = pandas.concat([data, df], axis=0,ignore_index=True)
             df.to_csv('list_of_camera.csv')
         else:
-            st.error('Заполните пропущенные поля')
+            st.error('Fill in the missing fields')
     if del_camera:
 
         if name_ip and name_camera:
@@ -137,7 +118,7 @@ if selected == "Devices":
             df=df[(df['Название'] != name_camera) & (df['IP адрес'] != name_ip)]
             df.to_csv('list_of_camera.csv')
         else:
-            st.error('Заполните пропущенные поля')
+            st.error('Fill in the missing fields')
 
 
 
@@ -153,8 +134,8 @@ if selected == "Devices":
 if selected == "File mode":
 
     confidence = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 100
-    st.subheader('File mode. Сценарий с видео/фото (базовый) Возможность загрузить папку фото/интерактивный режим или видеозаписи для тестирования')
-
+    st.subheader('File mode')
+    st.info('Here you can upload single image / images folder / video for detection')
 
     source_radio = st.sidebar.radio("Select Source", ['Image', 'Video'])  # , horizontal=True)
     with st.container():
