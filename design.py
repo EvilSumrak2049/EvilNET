@@ -28,27 +28,24 @@ model = YOLO('best_all_v9_40epoch.pt')
 
 
 
-st.set_page_config(page_title="EvilNet search for drons", page_icon=":cinema:", layout="wide",
+st.set_page_config(page_title="EvilNet search for drones", page_icon=":cinema:", layout="wide",
                    initial_sidebar_state="expanded")
 
 # side bar
-st.sidebar.image("img/EvilNET_logo.jpg", caption="Search for drons")
+st.sidebar.image("img/EvilNET_logo.jpg", caption="Search for drones")
 
 with st.sidebar:
-    selected = option_menu("", ["Мониторинг", "---", "File mode","Download Video","Devises"],
-                           icons=['images', '','gear' , 'camera-video', 'card-image'], menu_icon="cast",
-                           default_index=0,
-                           styles={
-                               "container": {"padding": "0!important", "background-color": "#fafafa"},
-                               "nav-link-selected": {"background-color": "#b0b7c6"},
-                           })
+    selected = option_menu("", ["Monitoring", "---", "File mode","Download Video","Devices"],
+                           icons=['display', '','images' , 'download', 'database-fill'], menu_icon="cast",
+                           default_index=0
+                           )
 
 
 
 
 # Main Page Мониторинг
 st.subheader("Раздел события")
-if selected == "Мониторинг":
+if selected == "Monitoring":
     stream_on_off = st.checkbox('Включить / выключить демонстрацию с камер')
     if stream_on_off:
         cap_1 = cv2.VideoCapture(
@@ -105,7 +102,7 @@ if selected == "Мониторинг":
     st.divider()
 
 
-if selected == "Devises":
+if selected == "Devices":
     with st.container():
         col1, col2, col3 = st.columns(3)
     with col1:
@@ -171,7 +168,7 @@ if selected == "File mode":
             predict = st.sidebar.number_input("Predict", min_value=120, step=20, value=420)
         clicked = st.sidebar.button('Browse Folder')
         source_img = st.sidebar.file_uploader(
-            "Choose an images...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
+            "Choose images...", type=("jpg", "jpeg", "png", 'bmp', 'webp'),accept_multiple_files = True)
         if clicked:
 
             root = tk.Tk()
@@ -226,7 +223,7 @@ if selected == "File mode":
 
         with col2:
 
-            if st.sidebar.button('Detect Objects'):
+            if st.sidebar.button('Detect Objects', type='primary'):
                 if isinstance(source_img,list):
                     try:
                         for image in lst_of_imgs:
