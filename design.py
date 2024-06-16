@@ -295,7 +295,7 @@ if selected == "Download Video":
                 if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
 
                     os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
-                    delete_video_state_by_name(option, conn, cur)
-                    conn.close()
+                delete_video_state_by_name(option, conn, cur)
+                conn.close()
             else:
                 st.write("You didn't have anything")

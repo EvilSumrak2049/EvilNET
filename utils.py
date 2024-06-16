@@ -128,7 +128,7 @@ def video_input(model,confidence,conn,cur):
         with st.container():
             col1, col2, = st.columns(2)
         col1.header("DETECT OBJECTS")
-        col2.header(":blue[Обратите внимание !]")
+        col2.header(":blue[Warning !]")
 
         output = col1.empty()
         table = col2.empty()
@@ -145,7 +145,11 @@ def video_input(model,confidence,conn,cur):
             if not ret:
                 result.release()
                 st.write("Can't read frame, stream ended? Exiting ....")
-                upsert_video_state(vid_file_detected.split('/')[-1],conn,cur)
+                if '/' in vid_file_detected:
+
+                    upsert_video_state(vid_file_detected.split('/')[-1],conn,cur)
+                else:
+                    upsert_video_state(vid_file_detected.split('\\')[-1], conn, cur)
                 # button_video = create_download_video(f'uploaded_data/filename.avi')
                 # if button_video:
                 #     os.remove(f'{vid_file[:-4]}_detected.avi')
