@@ -74,25 +74,11 @@ def create_download_zip(name_out,zip_path,filename='myzip.zip'):
 
 
 
-# def crop(image,name=None):
-#     if name=='tl':
-#         image_top_left = image[:image.shape[0] // 2, :image.shape[1] // 2]
-#         return image_top_left
-#     elif name=='tr':
-#         image_top_right = image[:image.shape[0] // 2, image.shape[1] // 2:]
-#         return image_top_right
-#     elif name == 'bl':
-#         image_bottom_left = image[image.shape[0] // 2:, :image.shape[1] // 2]
-#         return image_bottom_left
-#     elif name == 'br':
-#
-#         image_bottom_right = image[image.shape[0] // 2:, image.shape[1] // 2:]
-#         return image_bottom_right
 
 
 
 volume = 0
-dct={'video':True}
+
 def video_input(model,confidence,conn,cur):
     vid_file = None
     button_video = False
@@ -119,12 +105,11 @@ def video_input(model,confidence,conn,cur):
 
         cap = cv2.VideoCapture(vid_file)
         len_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        #print(len_of_frames)
+
         progress = st.progress(0,text = "Operation in progress. Please wait.")
         status_text=st.empty()
 
-        # width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
 
 
 
@@ -137,18 +122,17 @@ def video_input(model,confidence,conn,cur):
         now = datetime.now()  # Задаем точное время и дату
 
         global volume
-        #global k
 
-        #st.title('Detected video')
+
+
         with st.container():
             col1, col2, = st.columns(2)
         col1.header("DETECT OBJECTS")
         col2.header(":blue[Обратите внимание !]")
-        #output = st.empty()
+
         output = col1.empty()
         table = col2.empty()
-       # status_text = st.empty()
-        #print(stop)
+
         perc = len_of_frames / 100
         i=1
         df = pd.DataFrame()
@@ -172,13 +156,13 @@ def video_input(model,confidence,conn,cur):
                 result_drone = model.predict(frame, verbose=False, conf=confidence, imgsz=640,device = 0)
             else:
                 result_drone = model.predict(frame, verbose=False, conf=confidence, imgsz=predict,device = 0)
-            #result_gun = model_gun.predict(frame, verbose=True, conf=confidence, imgsz=416)
+
             k+=1
             fps = cap.get(cv2.CAP_PROP_FPS)
             boxes = result_drone[0].boxes
             frame1=result_drone[0].plot()
             result.write(frame1)
-            #print(k,i*perc,i)
+
             if k> i*perc:
                 progress.progress(i-1,text="Operation in progress. Please wait.")
                 status_text.text(f'Progress: {i}')
@@ -186,22 +170,9 @@ def video_input(model,confidence,conn,cur):
 
 
             if len(boxes.cls.cpu().numpy()) != 0:
-                #print(boxes.cls.cpu().numpy())
+
                 frame = result_drone[0].plot()
-                # x, y, w, h = boxes.cpu().numpy().xywh[0].tolist()
-                #
-                #
-                # if x < frame.shape[1] // 2 and y < frame.shape[0] // 2:
-                #     frame = crop(frame, 'tl')
-                # elif x > frame.shape[1] // 2 and y < frame.shape[0] // 2:
-                #     frame = crop(frame, 'tr')
-                # elif x < frame.shape[1] // 2 and y > frame.shape[0] // 2:
-                #     frame = crop(frame, 'bl')
-                # elif x > frame.shape[1] // 2 and y > frame.shape[0] // 2:
-                #     frame = crop(frame, 'br')
-                # # frame=cv2.resize(frame,(1280,1080),interpolation=cv2.INTER_CUBIC)
-                # result1 = model_gun.predict(frame, conf=0.5, imgsz=1280)
-                # frame = result1[0].plot()
+
                 output.image(frame,channels="BGR")
 
 
@@ -211,9 +182,7 @@ def video_input(model,confidence,conn,cur):
                 volume += np.e ** (fps / 30)
                 if volume > 6:
 
-                        # result = model.predict(source=frame, persist=True, conf=0.7, imgsz=416)
 
-                        # result_pose = model_pose.predict(source=frame, conf=0.7, imgsz=416)
 
                     if count <5:
                         now = datetime.now()
@@ -240,4 +209,3 @@ def video_input(model,confidence,conn,cur):
                     volume = 0
         progress.empty()
         status_text.empty()
-     #   k=0
