@@ -25,7 +25,7 @@ This is streamlit project with functionality to monitor areas close to airports.
 - Video detection
 - Multiple images detection (return .zip with .txt)
 - Configurable confidence threshold and image size
-- Download video
+- Download / delete video in database-like view
 
 ## Installation
 ### via Docker
