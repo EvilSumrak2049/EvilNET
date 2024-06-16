@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 
 # Update and fix broken packages
 RUN apt-get update && apt-get install -y --fix-broken
+RUN apt-get install -y nvidia-container-toolkit
 
 # Install your packages, specifying versions if necessary
 RUN apt-get update && apt-get install -y \
