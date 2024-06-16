@@ -11,14 +11,13 @@ from streamlit_option_menu import option_menu
 import pandas as pd
 import PIL
 import os
-from collections import deque
 from clever_label import auto_label
-from utils import create_db_state,upsert_video_state,get_video_state_by_name
+from utils import create_db_state,upsert_video_state,get_video_state_by_name,delete_video_state_by_name
 import numpy as np
 
 conn, cur = create_db_state()
 
-model_gun = YOLO('models/YOLOv9c.pt')
+model = YOLO('best_all_v9_40epoch.pt')
 
 
 import sqlite3
@@ -28,7 +27,7 @@ import sqlite3
 
 
 
-que = deque()
+
 
 
 st.set_page_config(page_title="EvilNet search for drons", page_icon=":cinema:", layout="wide",
@@ -89,9 +88,9 @@ if selected == "Мониторинг":
 
 #################################
 
-    # with st.container():
-    #     col1, col2, col3 = st.columns(3)
-    # with col1:
+    with st.container():
+        col1, col2, col3 = st.columns(3)
+    with col1:
 
         ##output=st.empty()
         image_vid_1 = Image.open('img/pribor96_hubsan_zino_pro_2.jpg')
@@ -130,7 +129,7 @@ if selected == "Devises":
         if name_ip and name_camera:
 
 
-            data= pd.DataFrame(data={'Объект': ["Школа №1"], 'Название': [name_camera],
+            data= pd.DataFrame(data={'Объект': ["Аэропорт №1"], 'Название': [name_camera],
                             'IP адрес': [name_ip], "Состояние": ['отключено']})
             df = pandas.concat([data, df], axis=0,ignore_index=True)
             df.to_csv('list_of_camera.csv')
@@ -147,8 +146,7 @@ if selected == "Devises":
 
 
 
-def del_fol():
-    pass
+
 
 
 
@@ -164,8 +162,8 @@ def del_fol():
 if selected == "File mode":
     # Header
     confidence = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 100
-    st.subheader('File mode. Сценарий с видео (базовый) Возможность загрузить архив видеозаписей для тестирования')
-    st.subheader("Image/Video Config")
+    st.subheader('File mode. Сценарий с видео/фото (базовый) Возможность загрузить папку фото/интерактивный режим или видеозаписи для тестирования')
+   # st.subheader("Image/Video Config")
 
     source_radio = st.sidebar.radio("Select Source", ['Image', 'Video'])  # , horizontal=True)
     with st.container():
@@ -184,7 +182,7 @@ if selected == "File mode":
             root.wm_attributes('-topmost', 1)
             dirname = str(filedialog.askdirectory(master=root))
             if dirname!='':
-                print(dirname)
+                #print(dirname)
                 if '/' in dirname:
                     dirname = dirname.split('/')[-1]
                     listdirs = os.listdir(dirname)
@@ -196,7 +194,7 @@ if selected == "File mode":
                 for path in listdirs:
                     filename = os.path.join(dirname,path)
                     picture = PIL.Image.open(filename)                            #ЗАВТРА ПОЛЮБОМУ НАДО ДОРАБОТАТЬ
-                    auto_label(model_gun,filename,confidence,dirname)
+                    auto_label(model,filename,confidence,dirname)
                 if '/' in dirname:
                     final_path = dirname.split('/')[-1]
                 else:
@@ -205,7 +203,7 @@ if selected == "File mode":
      #   print(get_mode_zip(cur))
        # if len(get_mode_zip(cur))!=0 and get_mode_zip(cur)[0][1]:
                 if zip_button:
-                    print('i here')
+                    #print('i here')
                     if os.path.isdir(f"{final_path}_labels"):
                         print(True)
                         os.remove(f"{final_path}_labels")
@@ -238,7 +236,7 @@ if selected == "File mode":
                 if isinstance(source_img,list):
                     try:
                         for image in lst_of_imgs:
-                            res = model_gun.predict(image,
+                            res = model.predict(image,
                                                 conf=confidence
                                                 )
 
@@ -256,7 +254,7 @@ if selected == "File mode":
                         st.error("No image is uploaded yet!")
                 else:
                     try:
-                        res = model_gun.predict(uploaded_image,
+                        res = model.predict(uploaded_image,
                                                 conf=confidence
                                                 )
 
@@ -276,7 +274,7 @@ if selected == "File mode":
     elif source_radio == 'Video':
 
 
-        video_input(model_gun,confidence,conn,cur)
+        video_input(model,confidence,conn,cur)
         conn.close()
         #create_download_video('uploaded_data/filename.mp4')
         #create_download_zip('archiv','uploaded_data/archiv')
@@ -285,17 +283,40 @@ if selected == "File mode":
 if selected == "Download Video":
     try:
         lst_videos = list(map(lambda x:x[1],get_video_state_by_name(cur)))
-        print(lst_videos)
+        #print(lst_videos)
         option = st.selectbox(
             "How would you like to be contacted?",
             lst_videos)
-        print(option)
+        #print(option)
         st.write("You selected:", option)
         button_video = create_download_video(f'videos/{option}',option)
+        del_video_button = st.button('Delete this video')
         if button_video:
-            print(f"videos/{option.replace('_detected.avi', '.mp4')}")
+            #print(f"videos/{option.replace('_detected.avi', '.mp4')}")
             if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
                # print(f"videos/{option.replace('_detected.avi','.mp4')}")
                 os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
+        if del_video_button:
+            if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
+               # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+                os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
+            if os.path.isfile(f"{os.path.join('videos', option)}"):
+                # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+                os.remove(f"{os.path.join('videos', option)}")
+            delete_video_state_by_name(option,conn,cur)
+
+
+
+
+
     except:
         st.error("You didn't detect anything")
+        del_video_button = st.button('Delete this name')
+        if del_video_button:
+            if option is not None:
+                if os.path.isfile(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}"):
+                   # print(f"videos/{option.replace('_detected.avi','.mp4')}")
+                    os.remove(f"{os.path.join('videos',option.replace('_detected.avi','.mp4'))}")
+                    delete_video_state_by_name(option, conn, cur)
+            else:
+                st.write("You didn't have anything")
