@@ -26,6 +26,7 @@ RUN apt-get install 'ffmpeg'\
     'libxext6'  -y
 
 RUN git clone https://github.com/EvilSumrak2049/EvilNET.git .
+RUN git pull
 
 RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
